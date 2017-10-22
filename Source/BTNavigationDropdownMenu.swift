@@ -228,6 +228,7 @@ open class BTNavigationDropdownMenu: UIView {
     fileprivate var topSeparator: UIView!
     fileprivate var menuButton: UIButton!
     fileprivate var menuTitle: UILabel!
+    fileprivate var menuSubTitle: UILabel!
     fileprivate var menuArrow: UIImageView!
     fileprivate var backgroundView: UIView!
     fileprivate var tableView: BTTableView!
@@ -248,9 +249,9 @@ open class BTNavigationDropdownMenu: UIView {
         - title: A string to define title to be displayed.
         - items: The array of items to select
      */
-    public convenience init(navigationController: UINavigationController? = nil, containerView: UIView = UIApplication.shared.keyWindow!, title: String, items: [String]) {
+    public convenience init(navigationController: UINavigationController? = nil, containerView: UIView = UIApplication.shared.keyWindow!, title: String, subTitle: String, items: [String]) {
 
-        self.init(navigationController: navigationController, containerView: containerView, title: BTTitle.title(title), items: items)
+        self.init(navigationController: navigationController, containerView: containerView, title: BTTitle.title(title), subTitle: subTitle, items: items)
     }
 
     /**
@@ -265,7 +266,7 @@ open class BTNavigationDropdownMenu: UIView {
         - title: An enum to define title to be displayed, can be a string or index of items.
         - items: The array of items to select
      */
-    public init(navigationController: UINavigationController? = nil, containerView: UIView = UIApplication.shared.keyWindow!, title: BTTitle, items: [String]) {
+    public init(navigationController: UINavigationController? = nil, containerView: UIView = UIApplication.shared.keyWindow!, title: BTTitle, subTitle: String, items: [String]) {
         // Key window
         guard let window = UIApplication.shared.keyWindow else {
             super.init(frame: CGRect.zero)
@@ -295,9 +296,12 @@ open class BTNavigationDropdownMenu: UIView {
         }
 
         titleSize = (titleToDisplay as NSString).size(attributes: [NSFontAttributeName:self.configuration.navigationBarTitleFont])
+        subTitleSize = (subTitle as NSString).size(attributes: [NSFontAttributeName:self.configuration.navigationBarTitleFont])
 
         // Set frame
         let frame = CGRect(x: 0, y: 0, width: titleSize.width + (self.configuration.arrowPadding + self.configuration.arrowImage.size.width)*2, height: self.navigationController!.navigationBar.frame.height)
+        let titleFrame = CGRect(x: 0, y: 0, width: titleSize.width + (self.configuration.arrowPadding + self.configuration.arrowImage.size.width)*2, height: self.navigationController!.navigationBar.frame.height*2/3)
+        let subTitleFrame = CGRect(x: 0, y: self.navigationController!.navigationBar.frame.height*2/3, width: subTitleSize.width + (self.configuration.arrowPadding + self.configuration.arrowImage.size.width)*2, height: self.navigationController!.navigationBar.frame.height/3)
 
         super.init(frame:frame)
 
@@ -309,12 +313,19 @@ open class BTNavigationDropdownMenu: UIView {
         self.menuButton.addTarget(self, action: #selector(BTNavigationDropdownMenu.menuButtonTapped(_:)), for: UIControlEvents.touchUpInside)
         self.addSubview(self.menuButton)
 
-        self.menuTitle = UILabel(frame: frame)
+        self.menuTitle = UILabel(frame: titleFrame)
         self.menuTitle.text = titleToDisplay
         self.menuTitle.textColor = self.menuTitleColor
         self.menuTitle.font = self.configuration.navigationBarTitleFont
         self.menuTitle.textAlignment = self.configuration.cellTextLabelAlignment
         self.menuButton.addSubview(self.menuTitle)
+        
+        self.menuSubTitle = UILabel(frame: subTitleFrame)
+        self.menuSubTitle.text = subTitle
+        self.menuSubTitle.textColor = self.menuTitleColor
+        self.menuSubTitle.font = self.configuration.navigationBarTitleFont
+        self.menuSubTitle.textAlignment = self.configuration.cellTextLabelAlignment
+        self.menuButton.addSubview(self.menuSubTitle)
 
         self.menuArrow = UIImageView(image: self.configuration.arrowImage.withRenderingMode(.alwaysTemplate))
         self.menuButton.addSubview(self.menuArrow)
@@ -380,6 +391,9 @@ open class BTNavigationDropdownMenu: UIView {
         self.menuTitle.sizeToFit()
         self.menuTitle.center = CGPoint(x: self.frame.size.width/2, y: self.frame.size.height/2)
         self.menuTitle.textColor = self.configuration.menuTitleColor
+        self.menuSubTitle.sizeToFit()
+        self.menuSubTitle.center = CGPoint(x: self.frame.size.width/2, y: (self.frame.size.height - self.menuTitle.frame.maxY)/2)
+        self.menuSubTitle.textColor = self.configuration.menuTitleColor
         self.menuArrow.sizeToFit()
         self.menuArrow.center = CGPoint(x: self.menuTitle.frame.maxX + self.configuration.arrowPadding, y: self.frame.size.height/2)
         self.menuWrapper.frame.origin.y = self.navigationController!.navigationBar.frame.maxY
