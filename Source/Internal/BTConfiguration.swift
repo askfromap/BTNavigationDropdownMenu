@@ -44,6 +44,7 @@ final class BTConfiguration {
     var maskBackgroundColor: UIColor!
     var maskBackgroundOpacity: CGFloat!
     var shouldChangeTitleText: Bool!
+    var isMultiSelect: Bool!
     
     init() {
         self.defaultValue()
@@ -67,7 +68,7 @@ final class BTConfiguration {
         self.selectedCellTextLabelColor = UIColor.darkGray
         self.cellTextLabelFont = UIFont(name: "HelveticaNeue-Bold", size: 17)
         self.navigationBarTitleFont = UIFont(name: "HelveticaNeue-Bold", size: 17)
-        self.navigationBarSubTitleFont = UIFont(name: "HelveticaNeue-Bold", size: 12)
+        self.navigationBarSubTitleFont = UIFont(name: "HelveticaNeue", size: 12)
         self.cellTextLabelAlignment = NSTextAlignment.left
         self.cellSelectionColor = UIColor.lightGray
         self.checkMarkImage = UIImage(contentsOfFile: checkMarkImagePath!)
@@ -78,5 +79,7 @@ final class BTConfiguration {
         self.maskBackgroundColor = UIColor.black
         self.maskBackgroundOpacity = 0.3
         self.shouldChangeTitleText = true
+        self.isMultiSelect = false
     }
 }
+

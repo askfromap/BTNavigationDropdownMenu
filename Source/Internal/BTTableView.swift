@@ -31,6 +31,7 @@ class BTTableView: UITableView, UITableViewDelegate, UITableViewDataSource {
     
     // Private properties
     var items: [String] = []
+    var itemModels: [BTItemModel] = []
     var selectedIndexPath: Int?
     
     required init?(coder aDecoder: NSCoder) {
@@ -43,6 +44,8 @@ class BTTableView: UITableView, UITableViewDelegate, UITableViewDataSource {
         self.items = items
         self.selectedIndexPath = items.index(of: title)
         self.configuration = configuration
+        
+        reloadModels()
         
         // Setup table view
         self.delegate = self
@@ -61,6 +64,16 @@ class BTTableView: UITableView, UITableViewDelegate, UITableViewDataSource {
         return nil;
     }
     
+    //reload models after update items
+    func reloadModels() {
+        var models: [BTItemModel] = []
+        for i in 0..<items.count {
+            models.append(BTItemModel(items[i]))
+        }
+        
+        itemModels = models
+    }
+    
     // Table view data source
     func numberOfSections(in tableView: UITableView) -> Int {
         return 1
@@ -77,7 +90,11 @@ class BTTableView: UITableView, UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = BTTableViewCell(style: UITableViewCellStyle.default, reuseIdentifier: "Cell", configuration: self.configuration)
         cell.textLabel?.text = self.items[(indexPath as NSIndexPath).row]
-        cell.checkmarkIcon.isHidden = ((indexPath as NSIndexPath).row == selectedIndexPath) ? false : true
+        if self.configuration.isMultiSelect {
+            cell.checkmarkIcon.isHidden = !self.itemModels[indexPath.row].isChecked
+        } else {
+            cell.checkmarkIcon.isHidden = ((indexPath as NSIndexPath).row == selectedIndexPath) ? false : true
+        }
         return cell
     }
     
@@ -87,15 +104,22 @@ class BTTableView: UITableView, UITableViewDelegate, UITableViewDataSource {
         self.selectRowAtIndexPathHandler!((indexPath as NSIndexPath).row)
         self.reloadData()
         let cell = tableView.cellForRow(at: indexPath) as? BTTableViewCell
-        cell?.contentView.backgroundColor = self.configuration.cellSelectionColor
-        cell?.textLabel?.textColor = self.configuration.selectedCellTextLabelColor
+        if configuration.isMultiSelect {
+            self.itemModels[indexPath.row].toggleState()
+            cell?.checkmarkIcon.isHidden = !self.itemModels[indexPath.row].isChecked
+        } else {
+            cell?.contentView.backgroundColor = self.configuration.cellSelectionColor
+            cell?.textLabel?.textColor = self.configuration.selectedCellTextLabelColor
+        }
     }
     
     func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
         let cell = tableView.cellForRow(at: indexPath) as? BTTableViewCell
         cell?.checkmarkIcon.isHidden = true
-        cell?.contentView.backgroundColor = self.configuration.cellBackgroundColor
-        cell?.textLabel?.textColor = self.configuration.cellTextLabelColor
+        if !configuration.isMultiSelect {
+            cell?.contentView.backgroundColor = self.configuration.cellBackgroundColor
+            cell?.textLabel?.textColor = self.configuration.cellTextLabelColor
+        }
     }
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
@@ -105,3 +129,17 @@ class BTTableView: UITableView, UITableViewDelegate, UITableViewDataSource {
         }
     }
 }
+
+class BTItemModel {
+    var text: String
+    var isChecked = false
+    
+    init(_ text: String) {
+        self.text = text
+    }
+    
+    func toggleState() {
+        isChecked = !isChecked
+    }
+}
+

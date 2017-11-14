@@ -220,8 +220,19 @@ open class BTNavigationDropdownMenu: UIView {
         }
     }
     
+    // The boolean value for multiselected mode. Delaults is false
+    open var isMultiSelect: Bool! {
+        get {
+            return self.configuration.isMultiSelect
+        }
+        set(value) {
+            self.configuration.isMultiSelect = value
+        }
+    }
+    
     open var didSelectItemAtIndexHandler: ((_ indexPath: Int) -> ())?
     open var isShown: Bool!
+    open var hideMenuHandler: (() -> Void)?
     
     fileprivate weak var navigationController: UINavigationController?
     fileprivate var configuration = BTConfiguration()
@@ -343,7 +354,7 @@ open class BTNavigationDropdownMenu: UIView {
         self.backgroundView.backgroundColor = self.configuration.maskBackgroundColor
         self.backgroundView.autoresizingMask = [ .flexibleWidth, .flexibleHeight ]
         
-        let backgroundTapRecognizer = UITapGestureRecognizer(target: self, action: #selector(BTNavigationDropdownMenu.hideMenu));
+        let backgroundTapRecognizer = UITapGestureRecognizer(target: self, action:  #selector(BTNavigationDropdownMenu.hideMenu));
         self.backgroundView.addGestureRecognizer(backgroundTapRecognizer)
         
         // Init properties
@@ -358,12 +369,14 @@ open class BTNavigationDropdownMenu: UIView {
             guard let selfie = self else {
                 return
             }
-            selfie.didSelectItemAtIndexHandler!(indexPath)
-            if selfie.shouldChangeTitleText! {
-                selfie.setMenuTitle("\(selfie.tableView.items[indexPath])")
+            if !selfie.configuration.isMultiSelect {
+                selfie.didSelectItemAtIndexHandler!(indexPath)
+                if selfie.shouldChangeTitleText! {
+                    selfie.setMenuTitle("\(selfie.tableView.items[indexPath])")
+                }
+                self?.hideMenu()
+                self?.layoutSubviews()
             }
-            self?.hideMenu()
-            self?.layoutSubviews()
         }
         
         // Add background view & table view to container view
@@ -423,6 +436,7 @@ open class BTNavigationDropdownMenu: UIView {
     open func updateItems(_ items: [String]) {
         if !items.isEmpty {
             self.tableView.items = items
+            self.tableView.reloadModels()
             self.tableView.reloadData()
         }
     }
@@ -441,6 +455,16 @@ open class BTNavigationDropdownMenu: UIView {
         
         self.menuSubTitle.sizeToFit()
         self.menuSubTitle.center = CGPoint(x: self.frame.size.width/2, y: (self.frame.size.height - (self.menuSubTitle.frame.height+2)/2))
+    }
+    
+    open func getSelected() -> [String] {
+        var arr: [String] = []
+        for i in 0..<tableView.itemModels.count {
+            if tableView.itemModels[i].isChecked {
+                arr.append(tableView.itemModels[i].text)
+            }
+        }
+        return arr
     }
     
     func setupDefaultConfiguration() {
@@ -527,6 +551,11 @@ open class BTNavigationDropdownMenu: UIView {
                     self.menuWrapper.isHidden = true
                 }
         })
+        if isMultiSelect {
+            if let hideHandeler = self.hideMenuHandler {
+                hideHandeler()
+            }
+        }
     }
     
     func rotateArrow() {
@@ -544,4 +573,6 @@ open class BTNavigationDropdownMenu: UIView {
     func menuButtonTapped(_ sender: UIButton) {
         self.isShown == true ? hideMenu() : showMenu()
     }
+    
 }
+
